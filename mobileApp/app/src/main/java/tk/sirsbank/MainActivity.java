@@ -17,7 +17,10 @@ import org.json.JSONObject;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.Executor;
+import java.security.MessageDigest;
+import java.util.Base64;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -56,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(getApplicationContext(),
                                 "Authentication succeeded!", Toast.LENGTH_SHORT).show();
 
-                        //Log.d("Android ID", getDeviceID((getBaseContext())));
+                        Log.d("Android ID", getDeviceID((getBaseContext())));
 
                         // Enviar aqui as coisas para o server (AndroidID)
                         sendAuth();
@@ -86,9 +89,16 @@ public class MainActivity extends AppCompatActivity {
 
 
     protected static String getDeviceID(Context Ctx) {
-
-        String android_id = Secure.getString(Ctx.getContentResolver(), Secure.ANDROID_ID);
-        return android_id;
+        try {
+            String android_id = Secure.getString(Ctx.getContentResolver(), Secure.ANDROID_ID);
+            MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+            messageDigest.update(android_id.getBytes());
+            String stringHash = Base64.getEncoder().encodeToString(messageDigest.digest());
+            return stringHash;
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     protected void sendAuth(){
