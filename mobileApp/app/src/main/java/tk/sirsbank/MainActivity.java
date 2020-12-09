@@ -3,23 +3,17 @@ package tk.sirsbank;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-//import android.hardware.biometrics.BiometricPrompt;
 import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
-
-import android.annotation.SuppressLint;
 import android.content.Context;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.provider.Settings.Secure;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
-
-import java.io.DataInputStream;
+import org.json.JSONException;
+import org.json.JSONObject;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
@@ -36,26 +30,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Thread t = new Thread() {
-            @Override
-            public void run() {
-                try {
-                    Log.d("log", "Antes da Socket");
-                    Socket s = new Socket("192.168.1.87", 1234);
-                    DataOutputStream dos = new DataOutputStream(s.getOutputStream());
-                    Log.d("log", "Depois do dos");
-                    dos.writeUTF("Hello Server");
-                    DataInputStream dis = new DataInputStream(s.getInputStream());
-                    dis.read();
-                    s.close();
-
-                } catch (
-                        IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-        t.start();
 
         Button btnAuth = (Button) findViewById(R.id.btnAuth);
         executor = ContextCompat.getMainExecutor(this);
@@ -81,9 +55,11 @@ public class MainActivity extends AppCompatActivity {
                         super.onAuthenticationSucceeded(result);
                         Toast.makeText(getApplicationContext(),
                                 "Authentication succeeded!", Toast.LENGTH_SHORT).show();
-                        Log.d("Android ID", getDeviceID((getBaseContext())));
-                        // Enviar aqui as coisas para o server (AndroidID)
 
+                        //Log.d("Android ID", getDeviceID((getBaseContext())));
+
+                        // Enviar aqui as coisas para o server (AndroidID)
+                        sendAuth();
                     }
 
                     @Override
@@ -109,10 +85,31 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public static String getDeviceID(Context Ctx) {
+    protected static String getDeviceID(Context Ctx) {
 
         String android_id = Secure.getString(Ctx.getContentResolver(), Secure.ANDROID_ID);
         return android_id;
+    }
+
+    protected void sendAuth(){
+        Thread t = new Thread(() -> {
+            try {
+
+                Socket s = new Socket("192.168.1.106", 1234);
+                DataOutputStream dos = new DataOutputStream(s.getOutputStream());
+
+                JSONObject json = new JSONObject();
+                json.put("androidID", getDeviceID(getBaseContext()));
+                //json.put("QRcode", "");
+
+                dos.writeUTF(json.toString());
+                s.close();
+
+            } catch (IOException | JSONException e) {
+                e.printStackTrace();
+            }
+        });
+        t.start();
     }
 
 /*    public static String getImeiNumber(Context Ctx) {
