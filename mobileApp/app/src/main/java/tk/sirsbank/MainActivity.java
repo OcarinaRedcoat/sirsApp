@@ -99,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
                 DataOutputStream dos = new DataOutputStream(s.getOutputStream());
 
                 JSONObject json = new JSONObject();
-                json.put("androidID", getDeviceID(getBaseContext()));
+                json.put("androidID", getDeviceID(getBaseContext())); //FIXME: Falta dar hash do androidID
                 //json.put("QRcode", "");
 
                 dos.writeUTF(json.toString());
