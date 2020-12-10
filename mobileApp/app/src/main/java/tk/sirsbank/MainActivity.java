@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
         Thread t = new Thread(() -> {
             try {
 
-                Socket s = new Socket("192.168.1.118", 1234);
+                Socket s = new Socket("192.168.43.67", 1234);
                 BufferedOutputStream dos = new BufferedOutputStream(s.getOutputStream());
 
                 JSONObject json = new JSONObject();
