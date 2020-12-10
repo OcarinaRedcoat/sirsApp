@@ -14,8 +14,11 @@ import android.widget.Button;
 import android.widget.Toast;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.Executor;
@@ -91,9 +94,11 @@ public class MainActivity extends AppCompatActivity {
     protected static String getDeviceID(Context Ctx) {
         try {
             String android_id = Secure.getString(Ctx.getContentResolver(), Secure.ANDROID_ID);
+            Log.d("Android ID", android_id);
             MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
             messageDigest.update(android_id.getBytes());
             String stringHash = Base64.getEncoder().encodeToString(messageDigest.digest());
+            Log.d("JSON hashed", stringHash);
             return stringHash;
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -105,14 +110,15 @@ public class MainActivity extends AppCompatActivity {
         Thread t = new Thread(() -> {
             try {
 
-                Socket s = new Socket("192.168.1.106", 1234);
-                DataOutputStream dos = new DataOutputStream(s.getOutputStream());
+                Socket s = new Socket("192.168.1.118", 1234);
+                BufferedOutputStream dos = new BufferedOutputStream(s.getOutputStream());
 
                 JSONObject json = new JSONObject();
-                json.put("androidID", getDeviceID(getBaseContext())); //FIXME: Falta dar hash do androidID
-                //json.put("QRcode", "");
-
-                dos.writeUTF(json.toString());
+                json.put("androidID", getDeviceID(getBaseContext()));
+                Log.d("JSON", json.toString());
+                Log.d("JSON Bytes", json.toString().getBytes().toString());
+                dos.write(json.toString().getBytes());
+                dos.flush();
                 s.close();
 
             } catch (IOException | JSONException e) {
