@@ -19,6 +19,7 @@ import com.google.android.material.textfield.TextInputLayout;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -132,17 +133,19 @@ public class MainActivity extends AppCompatActivity {
         Thread t = new Thread(() -> {
             try {
 
-                Socket s = new Socket("192.168.1.125", 1234);
-                BufferedOutputStream dos = new BufferedOutputStream(s.getOutputStream());
+                Socket s = new Socket("165.232.105.181", 1234);
+                BufferedOutputStream bos = new BufferedOutputStream(s.getOutputStream());
 
                 JSONObject json = new JSONObject();
                 json.put("androidID", getDeviceID(getBaseContext()));
                 json.put("registerCode", code);
                 Log.d("JSON", json.toString());
                 Log.d("JSON Bytes", json.toString().getBytes().toString());
-                dos.write(json.toString().getBytes());
-                dos.flush();
+                bos.write(json.toString().getBytes());
+                bos.flush();
                 s.close();
+
+                BufferedInputStream bis = new BufferedInputStream((s.getInputStream()));
 
             } catch (IOException | JSONException e) {
                 e.printStackTrace();
@@ -155,7 +158,7 @@ public class MainActivity extends AppCompatActivity {
         Thread t = new Thread(() -> {
             try {
 
-                Socket s = new Socket("192.168.1.125", 1234);
+                Socket s = new Socket("165.232.105.181", 1234);
                 BufferedOutputStream dos = new BufferedOutputStream(s.getOutputStream());
 
                 JSONObject json = new JSONObject();
