@@ -11,7 +11,11 @@ import android.provider.Settings.Secure;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.material.textfield.TextInputLayout;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -88,6 +92,23 @@ public class MainActivity extends AppCompatActivity {
 
 
         });
+
+        Button btnReg = (Button) findViewById(R.id.btnRegister);
+        btnReg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TextView code = findViewById(R.id.code);
+                Log.d("Code", code.getText().toString());
+
+                if (code.getText().toString().length() != 6){
+                    Toast.makeText(getApplicationContext(), "Register Code must have 6 digits, try again.",
+                            Toast.LENGTH_SHORT)
+                            .show();
+                    return;
+                }
+                sendRegister(code.getText().toString());
+            }
+        });
     }
 
 
@@ -106,11 +127,35 @@ public class MainActivity extends AppCompatActivity {
         return null;
     }
 
+    protected void sendRegister(String code){
+        Log.d("SendRegister Code", code);
+        Thread t = new Thread(() -> {
+            try {
+
+                Socket s = new Socket("192.168.1.125", 1234);
+                BufferedOutputStream dos = new BufferedOutputStream(s.getOutputStream());
+
+                JSONObject json = new JSONObject();
+                json.put("androidID", getDeviceID(getBaseContext()));
+                json.put("registerCode", code);
+                Log.d("JSON", json.toString());
+                Log.d("JSON Bytes", json.toString().getBytes().toString());
+                dos.write(json.toString().getBytes());
+                dos.flush();
+                s.close();
+
+            } catch (IOException | JSONException e) {
+                e.printStackTrace();
+            }
+        });
+        t.start();
+    }
+
     protected void sendAuth(){
         Thread t = new Thread(() -> {
             try {
 
-                Socket s = new Socket("192.168.43.67", 1234);
+                Socket s = new Socket("192.168.1.125", 1234);
                 BufferedOutputStream dos = new BufferedOutputStream(s.getOutputStream());
 
                 JSONObject json = new JSONObject();
@@ -128,14 +173,4 @@ public class MainActivity extends AppCompatActivity {
         t.start();
     }
 
-/*    public static String getImeiNumber(Context Ctx) {
-        final TelephonyManager telephonyManager = (TelephonyManager) Ctx.getSystemService(Context.TELEPHONY_SERVICE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            //getDeviceId() is Deprecated so for android O we can use getImei() method
-            return telephonyManager.getImei();
-        } else {
-            return getDeviceID(Ctx);
-        }
-
-    }*/
 }
